@@ -146,7 +146,7 @@ ISR(INT2_vect){
 
 
 
-/*****************************FUNCTIONS****************************/
+/***************************** FUNCTIONS ****************************/
 
 void segDataDisplay(void); // to display the values of 7-SEG
 
@@ -226,16 +226,28 @@ TCNT1 = 34286;   // for 1 sec at 8 MHz and 256 prescale
 u8 digit=0;
 u8 clkDigits[6]={hrs2,hrs1,min2,min1,sec2,sec1};
 
-u8 Welcome_Massage[]="Welcome";
-u8 Set_Massage[]="Set the clock";
+
+u8 Set_Massage[]="Set the clock!";
 u8 clock_Massage[]="The Clock mode";
 u8 timer_Massage[]="The Timer mode";
-u8 clock_selection_Massage[]="Clk mode:Press + ";
+u8 clock_selection_Massage[]="Clock:Press + ";
+u8 timer_selection_Massage[]="Timer:Press - ";
+u8 clock_DoneSet_Massage[]="Done!";
+u8 exit_Massage[]="Press % to exit!";
 
-Lcd_WriteString(&Lcd1,Welcome_Massage);
+
+Lcd_WriteString(&Lcd1,clock_selection_Massage);
+
+Lcd_gotoPosition(&Lcd1,1,0);
+
+Lcd_WriteString(&Lcd1,timer_selection_Massage);
+
 
 while (1)
   {
+
+	//Lcd_vidSendCommand(&Lcd1,CLEAR_THE_SCREEN);
+
 
 
 u16 locVarPressedKey=Keypad_voidGetPressedKey();
@@ -244,7 +256,7 @@ u16 locVarPressedKey=Keypad_voidGetPressedKey();
   {
 	 //Lcd_WriteString(&Lcd1,clock_selection_Massage);
 
-	if(locVarPressedKey==5)
+	if(locVarPressedKey=='*')
 	{
 		CLR_BIT(TCCR1B,2); CLR_BIT(TCCR1B,1); CLR_BIT(TCCR1B,0); //to stop timer
 		Lcd_vidSendCommand(&Lcd1,CLEAR_THE_SCREEN);
@@ -255,14 +267,16 @@ u16 locVarPressedKey=Keypad_voidGetPressedKey();
 
 		while(digit<=5){
 
-			segDataDisplay();
+
 
 		do{
 					locVarPressedKey=Keypad_voidGetPressedKey();
+
+					segDataDisplay();
 		  }while (locVarPressedKey==KEY_NOT_PRESSED);
 
 
-		if(locVarPressedKey!=KEY_NOT_PRESSED &&(locVarPressedKey>=0&&locVarPressedKey<=9))
+		if(locVarPressedKey!=KEY_NOT_PRESSED &&(locVarPressedKey>='0'&&locVarPressedKey<='9'))
 		  {
 			clkDigits[digit]=locVarPressedKey;
 			digit++;
@@ -271,21 +285,38 @@ u16 locVarPressedKey=Keypad_voidGetPressedKey();
 
 		  }
 
-		while(digit==6)
-		  {
+		if(digit==6){
 			TCNT1 = 34286;
-			 SET_BIT(TCCR1B,2); CLR_BIT(TCCR1B,1); CLR_BIT(TCCR1B,0); //to start
+						 SET_BIT(TCCR1B,2); CLR_BIT(TCCR1B,1); CLR_BIT(TCCR1B,0); //to start
+		while(1)
+		  {
+
 			segDataDisplay();
+			Lcd_WriteString(&Lcd1,clock_DoneSet_Massage);
+			Lcd_gotoPosition(&Lcd1,1,0);
+			Lcd_WriteString(&Lcd1,exit_Massage);
+									Lcd_WriteString(&Lcd1,Set_Massage);
+			if (Keypad_voidGetPressedKey()=='%')
+			{
+				Lcd_vidSendCommand(&Lcd1,CLEAR_THE_SCREEN);
+						Lcd_WriteString(&Lcd1,clock_selection_Massage);
+						Lcd_gotoPosition(&Lcd1,1,0);
+						Lcd_WriteString(&Lcd1,timer_selection_Massage);
+						break;
+
+			}
+
 
 		  }
-
 		}
+
+	}
 
 	 }
 
 
 
-	else if(locVarPressedKey==6)
+	else if(locVarPressedKey=='%')
 	{
 		Lcd_vidSendCommand(&Lcd1,CLEAR_THE_SCREEN);
 				Lcd_WriteString(&Lcd1,timer_Massage);
@@ -296,8 +327,12 @@ u16 locVarPressedKey=Keypad_voidGetPressedKey();
 		{
 			segDataDisplay();
 
-			if(Keypad_voidGetPressedKey()==5){
+			if(Keypad_voidGetPressedKey()=='%'){
 				Lcd_vidSendCommand(&Lcd1,CLEAR_THE_SCREEN);
+						Lcd_WriteString(&Lcd1,clock_Massage);
+						Lcd_gotoPosition(&Lcd1,1,0);
+						Lcd_WriteString(&Lcd1,Set_Massage);
+
 				break;
 			}
 
@@ -311,7 +346,7 @@ u16 locVarPressedKey=Keypad_voidGetPressedKey();
 
 
 	//segDataDisplay();
-}
+ }
 }
 
 void segDataDisplay(void)
